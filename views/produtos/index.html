@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Produtos</title>
+  <link rel="stylesheet" href="../../public/style.css">
+</head>
+<body>
+  <h1>Lista de Produtos</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nome</th>
+        <th>Quantidade</th>
+        <th>Preço</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody id="tabela-produtos"></tbody>
+  </table>
+  <a href="../produtos/cadasto.html" class="link-basico">Cadastrar Produto</a>
+  <a href="../../index.php" class="link-basico">Início</a>
+  <script>
+    fetch('../../controllers/ProdutoController.php')
+      .then(res => res.json())
+      .then(produtos => {
+        const tabela = document.getElementById('tabela-produtos');
+        tabela.innerHTML = '';
+        produtos.forEach(produto => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${produto.id}</td>
+            <td>${produto.nome}</td>
+            <td>${produto.quantidade}</td>
+            <td>${produto.preco}</td>
+            <td>
+              <button onclick="editarProduto(${produto.id}, '${produto.nome}', ${produto.quantidade}, ${produto.preco})">Editar</button>
+              <button onclick="excluirProduto(${produto.id})">Excluir</button>
+            </td>
+          `;
+          tabela.appendChild(tr);
+        });
+      })
+      .catch(() => {
+        alert('Erro ao carregar produtos.');
+      });
+
+    function excluirProduto(id) {
+      if (confirm('Tem certeza que deseja excluir este produto?')) {
+        fetch('../../controllers/ProdutoController.php', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `id=${id}`
+        })
+        .then(res => res.json())
+        .then(resposta => {
+          alert(resposta.sucesso ? resposta.mensagem : resposta.erro);
+          location.reload();
+        });
+      }
+    }
+
+    function editarProduto(id, nome, quantidade, preco) {
+      const novoNome = prompt('Novo nome:', nome);
+      const novaQuantidade = prompt('Nova quantidade:', quantidade);
+      const novoPreco = prompt('Novo preço:', preco);
+
+      if (novoNome && novaQuantidade && novoPreco) {
+        fetch('../../controllers/ProdutoController.php', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `id=${id}&nome=${encodeURIComponent(novoNome)}&quantidade=${novaQuantidade}&preco=${novoPreco}`
+        })
+        .then(res => res.json())
+        .then(resposta => {
+          alert(resposta.sucesso ? resposta.mensagem : resposta.erro);
+          location.reload();
+        });
+      }
+    }
+  </script>
+</body>
+</html>
